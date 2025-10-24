@@ -2,7 +2,7 @@ import { Users, AlertTriangle, Shield, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskScoreCard } from "./RiskScoreCard";
 import { AlertCard } from "./AlertCard";
-import { SystemHealthPanel } from "./SystemHealthPanel";
+import SystemHealthPanel from "@/components/SystemHealthPanel";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const highRiskUsers = [

@@ -1,5 +1,6 @@
 import { Shield, Users, AlertTriangle, Activity, BarChart3, Settings, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SystemHealthPanel from "@/components/SystemHealthPanel"; // ✅ استدعاء مكون الحالة الحقيقي
 
 interface SidebarProps {
   activeTab: string;
@@ -18,6 +19,7 @@ const menuItems = [
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   return (
     <aside className="w-64 h-screen bg-card border-r border-border flex flex-col">
+      {/* ===== Logo Section ===== */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <Shield className="w-8 h-8 text-primary" />
@@ -27,12 +29,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           </div>
         </div>
       </div>
-      
+
+      {/* ===== Navigation Menu ===== */}
       <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          
+
           return (
             <button
               key={item.id}
@@ -49,19 +52,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           );
         })}
       </nav>
-      
+
+      {/* ===== System Health Section ===== */}
       <div className="p-4 border-t border-border">
-        <div className="bg-secondary/50 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-muted-foreground">System Status</span>
-            <span className="flex items-center gap-1 text-xs text-success">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse-glow" />
-              Active
-            </span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Last update: {new Date().toLocaleTimeString()}
-          </div>
+        <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
+          <span className="text-xs text-muted-foreground">System Status</span>
+          {/* ✅ الحالة الفعلية من الباك */}
+          <SystemHealthPanel />
         </div>
       </div>
     </aside>

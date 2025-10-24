@@ -22,102 +22,18 @@ interface User {
 }
 
 const mockUsers: User[] = [
-  {
-    id: "1",
-    username: "j.anderson",
-    fullName: "Jane Anderson",
-    department: "Finance",
-    role: "Senior Analyst",
-    status: "high-risk",
-    lastLogin: "2 min ago",
-    location: "Unknown Location",
-    device: "Windows Desktop",
-    anomalies: { today: 3, week: 8 },
-    riskScore: 92,
-  },
-  {
-    id: "2",
-    username: "m.chen",
-    fullName: "Michael Chen",
-    department: "IT Operations",
-    role: "Systems Admin",
-    status: "investigating",
-    lastLogin: "15 min ago",
-    location: "New York, US",
-    device: "MacBook Pro",
-    anomalies: { today: 2, week: 6 },
-    riskScore: 87,
-  },
-  {
-    id: "3",
-    username: "s.rodriguez",
-    fullName: "Sarah Rodriguez",
-    department: "HR",
-    role: "HR Manager",
-    status: "normal",
-    lastLogin: "1 hour ago",
-    location: "London, UK",
-    device: "Windows Laptop",
-    anomalies: { today: 1, week: 5 },
-    riskScore: 78,
-  },
-  {
-    id: "4",
-    username: "a.kumar",
-    fullName: "Amit Kumar",
-    department: "Engineering",
-    role: "Lead Developer",
-    status: "normal",
-    lastLogin: "3 hours ago",
-    location: "San Francisco, US",
-    device: "MacBook Pro",
-    anomalies: { today: 0, week: 4 },
-    riskScore: 75,
-  },
-  {
-    id: "5",
-    username: "l.white",
-    fullName: "Laura White",
-    department: "Sales",
-    role: "Sales Director",
-    status: "normal",
-    lastLogin: "5 hours ago",
-    location: "Chicago, US",
-    device: "iPad Pro",
-    anomalies: { today: 0, week: 2 },
-    riskScore: 42,
-  },
-  {
-    id: "6",
-    username: "d.martinez",
-    fullName: "David Martinez",
-    department: "Marketing",
-    role: "Marketing Manager",
-    status: "normal",
-    lastLogin: "6 hours ago",
-    location: "Miami, US",
-    device: "Windows Desktop",
-    anomalies: { today: 0, week: 1 },
-    riskScore: 35,
-  },
+  { id: "1", username: "j.anderson", fullName: "Jane Anderson", department: "Finance", role: "Senior Analyst", status: "high-risk", lastLogin: "2 min ago", location: "Unknown Location", device: "Windows Desktop", anomalies: { today: 3, week: 8 }, riskScore: 92 },
+  { id: "2", username: "m.chen", fullName: "Michael Chen", department: "IT Operations", role: "Systems Admin", status: "investigating", lastLogin: "15 min ago", location: "New York, US", device: "MacBook Pro", anomalies: { today: 2, week: 6 }, riskScore: 87 },
+  { id: "3", username: "s.rodriguez", fullName: "Sarah Rodriguez", department: "HR", role: "HR Manager", status: "normal", lastLogin: "1 hour ago", location: "London, UK", device: "Windows Laptop", anomalies: { today: 1, week: 5 }, riskScore: 78 },
+  { id: "4", username: "a.kumar", fullName: "Amit Kumar", department: "Engineering", role: "Lead Developer", status: "normal", lastLogin: "3 hours ago", location: "San Francisco, US", device: "MacBook Pro", anomalies: { today: 0, week: 4 }, riskScore: 75 },
+  { id: "5", username: "l.white", fullName: "Laura White", department: "Sales", role: "Sales Director", status: "normal", lastLogin: "5 hours ago", location: "Chicago, US", device: "iPad Pro", anomalies: { today: 0, week: 2 }, riskScore: 42 },
+  { id: "6", username: "d.martinez", fullName: "David Martinez", department: "Marketing", role: "Marketing Manager", status: "normal", lastLogin: "6 hours ago", location: "Miami, US", device: "Windows Desktop", anomalies: { today: 0, week: 1 }, riskScore: 35 },
 ];
 
 const statusConfig = {
-  normal: {
-    badge: "bg-success/20 text-success border-success/30",
-    icon: CheckCircle,
-    label: "Normal",
-  },
-  investigating: {
-    badge: "bg-warning/20 text-warning border-warning/30",
-    icon: AlertCircle,
-    label: "Investigating",
-  },
-  "high-risk": {
-    badge: "bg-destructive/20 text-destructive border-destructive/30",
-    icon: Shield,
-    label: "High Risk",
-  },
+  normal: { badge: "bg-success/20 text-success border-success/30", icon: CheckCircle, label: "Normal" },
+  investigating: { badge: "bg-warning/20 text-warning border-warning/30", icon: AlertCircle, label: "Investigating" },
+  "high-risk": { badge: "bg-destructive/20 text-destructive border-destructive/30", icon: Shield, label: "High Risk" },
 };
 
 const getRiskColor = (score: number) => {
@@ -181,41 +97,53 @@ export function UsersTab() {
             <span>User & Entity Overview</span>
             <div className="flex items-center gap-4">
               <div className="relative">
+                <label htmlFor="users-search" className="sr-only">Search users</label>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
+                  id="users-search"
+                  name="search"
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-64 bg-secondary/50 border-border"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40 bg-secondary/50 border-border">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="investigating">Investigating</SelectItem>
-                  <SelectItem value="high-risk">High Risk</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                <SelectTrigger className="w-40 bg-secondary/50 border-border">
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+              <div className="flex items-center gap-2">
+                <label htmlFor="users-status" className="sr-only">Status</label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger id="users-status" className="w-40 bg-secondary/50 border-border">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="investigating">Investigating</SelectItem>
+                    <SelectItem value="high-risk">High Risk</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label htmlFor="users-department" className="sr-only">Department</label>
+                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                  <SelectTrigger id="users-department" className="w-40 bg-secondary/50 border-border">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardTitle>
         </CardHeader>
+
         <CardContent>
           <Table>
             <TableHeader>
@@ -235,10 +163,7 @@ export function UsersTab() {
                 const statusInfo = statusConfig[user.status];
                 const StatusIcon = statusInfo.icon;
                 return (
-                  <TableRow
-                    key={user.id}
-                    className="border-border hover:bg-secondary/30 transition-colors cursor-pointer"
-                  >
+                  <TableRow key={user.id} className="border-border hover:bg-secondary/30 transition-colors cursor-pointer">
                     <TableCell>
                       <div>
                         <div className="font-semibold text-foreground">{user.fullName}</div>

@@ -3,10 +3,11 @@ import { Sidebar } from "@/components/Sidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { OverviewTab } from "@/components/OverviewTab";
 import { UsersTab } from "@/components/UsersTab";
-import { AlertsTab } from "@/components/AlertsTab";
-import { AnalyticsTab } from "@/components/AnalyticsTab";
+import AlertsTab from "@/components/AlertsTab";
+import AnalyticsTab from "@/components/AnalyticsTab";
 import { SettingsTab } from "@/components/SettingsTab";
-import { DataSourcesTab } from "@/components/DataSourcesTab";
+import DataSourcesTab from "@/components/DataSourcesTab";
+
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("overview");
