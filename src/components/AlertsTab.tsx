@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AnomaliesAPI, DetectionAPI, type AnomalyItem } from "@/lib/api";
+import { AnomaliesAPI, DetectionAPI, type Anomaly } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,7 +13,7 @@ export default function AlertsTab() {
     refetchInterval: 15000, // refresh ?? 15 ?????
   });
 
-  const rows: AnomalyItem[] = data?.data?.items ?? [];
+  const rows: Anomaly[] = data?.data?.items ?? [];
 
   const onRun = async () => {
     await DetectionAPI.run("impossible_travel,model_ueba");

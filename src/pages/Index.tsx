@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { OverviewTab } from "@/components/OverviewTab";
+import OverviewTab from "@/components/OverviewTab";
 import { UsersTab } from "@/components/UsersTab";
 import AlertsTab from "@/components/AlertsTab";
 import AnalyticsTab from "@/components/AnalyticsTab";

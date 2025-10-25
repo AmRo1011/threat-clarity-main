@@ -1,70 +1,138 @@
 import { Users, AlertTriangle, Shield, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskScoreCard } from "./RiskScoreCard";
-import { AlertCard } from "./AlertCard";
+import AlertCard from "@/components/AlertCard";
 import SystemHealthPanel from "@/components/SystemHealthPanel";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { AnalyticsAPI, AnomaliesAPI, UsersAPI, type UsersListResp } from "@/lib/api";
 
-const highRiskUsers = [
-  { username: "j.anderson", department: "Finance", score: 92, trend: "up" as const, anomalyCount: 8 },
-  { username: "m.chen", department: "IT Operations", score: 87, trend: "up" as const, anomalyCount: 6 },
-  { username: "s.rodriguez", department: "HR", score: 78, trend: "down" as const, anomalyCount: 5 },
-  { username: "a.kumar", department: "Engineering", score: 75, trend: "up" as const, anomalyCount: 4 },
-];
+// Define types for query responses to fix TypeScript errors
+type AnomalyListResponse = { success: boolean; data: { count?: number; items: any[] } };
+type DeptRiskResponse = { departments: Array<{ department_name: string; average_risk_score: number }> };
+type StatsResponse = { total_users: number; by_status: { high_risk: number } };
+type ThreatsResponse = { threat_types: Array<{ label: string; percentage: number; type: string }> };
 
-const recentAlerts = [
-  {
-    severity: "critical" as const,
-    title: "Suspicious Data Exfiltration",
-    user: "j.anderson",
-    timestamp: "2 min ago",
-    location: "Unknown Location",
-    confidence: 94,
-    description: "Large file transfer to external cloud storage outside business hours",
-  },
-  {
-    severity: "high" as const,
-    title: "Privilege Escalation Attempt",
-    user: "m.chen",
-    timestamp: "15 min ago",
-    location: "New York, US",
-    confidence: 87,
-    description: "Unauthorized attempt to access admin credentials",
-  },
-  {
-    severity: "medium" as const,
-    title: "Unusual Login Pattern",
-    user: "s.rodriguez",
-    timestamp: "1 hour ago",
-    location: "London, UK",
-    confidence: 76,
-    description: "Login from new device at unusual hour",
-  },
-];
+// Define User and UserListResponse types for topUsersQ
+type User = {
+  user_id: string;
+  username: string;
+  department?: { name: string };
+  risk_score: number;
+  anomalies?: { this_week?: number };
+};
 
-const riskDistributionData = [
-  { department: "Finance", risk: 85 },
-  { department: "IT Ops", risk: 72 },
-  { department: "HR", risk: 58 },
-  { department: "Engineering", risk: 45 },
-  { department: "Sales", risk: 38 },
-];
+export default function OverviewTab() {
+  // 1) Users statistics
+  const statsQ = useQuery<StatsResponse, Error>({
+    queryKey: ["overview", "user-stats"],
+    queryFn: async (): Promise<StatsResponse> => UsersAPI.stats(),
+    staleTime: 10_000,
+  });
 
-const threatTypeData = [
-  { name: "Data Exfiltration", value: 35, color: "hsl(var(--destructive))" },
-  { name: "Privilege Abuse", value: 28, color: "hsl(var(--warning))" },
-  { name: "Geo Anomaly", value: 22, color: "hsl(var(--info))" },
-  { name: "Off-hours Activity", value: 15, color: "hsl(var(--accent))" },
-];
+  // 2) Open anomalies (active alerts)
+  const anomaliesQ = useQuery<AnomalyListResponse, Error>({
+    queryKey: ["anomalies", "open"],
+    queryFn: async (): Promise<AnomalyListResponse> => AnomaliesAPI.list("status=open&limit=50"),
+    staleTime: 5_000,
+  });
 
-const stats = [
-  { label: "Total Users", value: "2,847", icon: Users, trend: "+12%", color: "text-primary" },
-  { label: "Active Alerts", value: "23", icon: AlertTriangle, trend: "-8%", color: "text-destructive" },
-  { label: "High Risk", value: "17", icon: Shield, trend: "+5%", color: "text-warning" },
-  { label: "Resolved Today", value: "156", icon: TrendingUp, trend: "+23%", color: "text-success" },
-];
+  // 3) Resolved today: جرّب API، وإلا هنستخدم counter محلي
+  const resolvedTodayQ = useQuery<AnomalyListResponse, Error>({
+    queryKey: ["overview", "resolved-today"],
+    queryFn: async (): Promise<AnomalyListResponse> => AnomaliesAPI.listResolvedToday(),
+    staleTime: 5_000,
+  });
+  const resolvedTodayLocalQ = useQuery<number, Error>({
+    queryKey: ["overview", "resolvedTodayLocal"],
+    queryFn: async () => 0,
+    initialData: 0,
+  });
 
-export function OverviewTab() {
+  // 4) Top 4 high-risk users
+  const topUsersQ = useQuery<UsersListResp, Error, User[]>({
+    queryKey: ["overview", "top-users"],
+    queryFn: () => UsersAPI.list({ page: 1, per_page: 50, status: "all", department: "all", search: "" }),
+    select: (resp) => [...(resp.users || [])].sort((a, b) => b.risk_score - a.risk_score).slice(0, 4),
+    staleTime: 10_000,
+  });
+
+  // 5) Analytics
+  const threatsQ = useQuery<ThreatsResponse, Error>({
+    queryKey: ["overview", "threats"],
+    queryFn: async (): Promise<ThreatsResponse> => AnalyticsAPI.threatDistribution(),
+    staleTime: 30_000,
+  });
+
+  const deptQ = useQuery<DeptRiskResponse, Error>({
+    queryKey: ["overview", "dept-risk"],
+    queryFn: async (): Promise<DeptRiskResponse> => AnalyticsAPI.riskByDepartment(),
+    staleTime: 30_000,
+  });
+
+  // === Cards values ===
+  const totalUsers = statsQ.data?.total_users ?? 0;
+  const highRisk = statsQ.data?.by_status?.high_risk ?? 0;
+  const activeAlerts = anomaliesQ.data?.data?.count ?? anomaliesQ.data?.data?.items?.length ?? 0;
+
+  const isToday = (iso?: string) => {
+    if (!iso) return false;
+    const d = new Date(iso);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  };
+
+  // بعد ما تجيب data من useQuery لـ listResolvedToday:
+  const resolvedItems = (resolvedTodayQ.data?.data?.items ?? []) as any[];
+  // نحاول نلقط أي تايم ستامب منطقي للحل: resolved_at > updated_at > detected_at
+  const resolvedTodayCount = resolvedItems.filter(
+    (it) => isToday(it.resolved_at || it.updated_at || it.detected_at)
+  ).length;
+
+  const resolvedToday = resolvedTodayQ.data?.data?.count ?? resolvedTodayCount;
+
+  const stats = [
+    { label: "Total Users", value: totalUsers.toLocaleString(), icon: Users, color: "text-primary" },
+    { label: "Active Alerts", value: activeAlerts.toLocaleString(), icon: AlertTriangle, color: "text-destructive" },
+    { label: "High Risk", value: highRisk.toLocaleString(), icon: Shield, color: "text-warning" },
+    { label: "Resolved Today", value: resolvedToday.toLocaleString(), icon: TrendingUp, color: "text-success" },
+  ];
+
+  // === Charts data ===
+  const riskDistributionData =
+    deptQ.data?.departments?.map((d: any) => ({
+      department: d.department_name,
+      risk: d.average_risk_score,
+    })) ?? [];
+
+  const threatTypeData =
+    threatsQ.data?.threat_types?.map((t: any) => ({
+      name: t.label,
+      value: t.percentage,
+      color:
+        t.type === "data_exfiltration"
+          ? "hsl(var(--destructive))"
+          : t.type === "privilege_abuse"
+          ? "hsl(var(--warning))"
+          : t.type === "geo_anomaly"
+          ? "hsl(var(--info))"
+          : "hsl(var(--accent))",
+    })) ?? [];
+
+  const alerts = anomaliesQ.data?.data?.items ?? [];
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -76,7 +144,6 @@ export function OverviewTab() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <Icon className={`w-5 h-5 ${stat.color}`} />
-                  <span className="text-sm text-success font-medium">{stat.trend}</span>
                 </div>
                 <div className="text-3xl font-bold text-foreground mb-1">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -96,9 +163,19 @@ export function OverviewTab() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-4">
-            {highRiskUsers.map((user) => (
-              <RiskScoreCard key={user.username} {...user} />
+            {((topUsersQ.data as User[]) ?? []).map((u) => (
+              <RiskScoreCard
+                key={u.user_id}
+                username={u.username}
+                department={u.department?.name || "-"}
+                score={u.risk_score}
+                trend={u.risk_score >= 80 ? ("up" as const) : ("down" as const)}
+                anomalyCount={u.anomalies?.this_week ?? 0}
+              />
             ))}
+            {topUsersQ.data && topUsersQ.data.length === 0 && (
+              <div className="text-sm text-muted-foreground">No users found.</div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -115,9 +192,10 @@ export function OverviewTab() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentAlerts.map((alert, idx) => (
-                <AlertCard key={idx} {...alert} />
+              {alerts.map((a: any) => (
+                <AlertCard key={a.id} alert={a} />
               ))}
+              {alerts.length === 0 && <div className="text-sm text-muted-foreground">No open alerts.</div>}
             </CardContent>
           </Card>
         </div>
@@ -168,10 +246,11 @@ export function OverviewTab() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {threatTypeData.map((entry, index) => (
+                  {threatTypeData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
+                <Legend />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",

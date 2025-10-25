@@ -13,7 +13,12 @@ Architecture & conventions
 - UI primitives: `src/components/ui/*` are small wrappers around Radix and Tailwind (lowercase filenames, e.g. `button.tsx`, `input.tsx`). Use these primitives instead of re-creating base components so styling and accessibility remain consistent.
 - Feature components: `src/components/*.tsx` contain higher-level UI (tabs, panels, cards). These use primitives from `src/components/ui`.
 - Pages & routing: `src/pages/Index.tsx` and `src/pages/NotFound.tsx` are mounted in `src/App.tsx` using `react-router-dom`. To add routes, update `src/App.tsx` (note the in-file comment: "ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL \"*\" ROUTE").
-- State & data fetching: `@tanstack/react-query` (QueryClient created in `App.tsx`) is the standard pattern for async data; follow that pattern for caching and mutations.
+- API layer: `src/lib/api.ts` exports domain-specific APIs (SystemAPI, AnomaliesAPI, etc.). Each API namespace handles authentication and error handling consistently.
+- Hooks layer: `src/hooks/use-*.ts` contain React Query hooks that wrap API calls. Always use these instead of direct API calls (e.g. `useSystemHealth()` instead of `SystemAPI.health()`).
+- State & data fetching: `@tanstack/react-query` (QueryClient created in `App.tsx`) is the standard pattern for async data. Key patterns:
+  - Queries: `useQuery({ queryKey: ["key", params], queryFn: () => API.fetch() })`
+  - Mutations: `useMutation({ mutationFn: (id) => API.update(id), onSuccess: () => queryClient.invalidateQueries() })`
+  - Auto-refresh: Use `refetchInterval` for polling (see `SystemHealthPanel.tsx`)
 
 Patterns to follow (concrete examples)
 - Use the `cn` helper for conditional class names: `import { cn } from "@/lib/utils"` then `className={cn("px-2", condition && "text-sm")}`.
