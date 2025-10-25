@@ -100,19 +100,6 @@ export const SystemAPI = {
 - `/analytics` - Department and threat analytics
 - `/status` - System health monitoring
 
-## بدء سريع (عربي)
-
-<div dir="rtl">
-
-• تثبيت Node.js (18+) و npm
-• استنسخ المشروع: `git clone <رابط>`
-• ثبّت المكتبات: `npm install`
-• انسخ ملف البيئة: `cp .env.example .env`
-• عدّل `VITE_API_URL` للإشارة إلى الباكند
-• شغّل السيرفر: `npm run dev`
-• افتح http://localhost:5173 في المتصفح
-
-</div>
 
 ## Troubleshooting
 
