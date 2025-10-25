@@ -1,73 +1,175 @@
-# Welcome to your Lovable project
+# UEBA Frontend
 
-## Project info
+User and Entity Behavior Analytics (UEBA) dashboard for monitoring and analyzing user behavior patterns, detecting anomalies, and managing security alerts.
 
-**URL**: https://lovable.dev/projects/389d2cc3-f1a4-4e67-9568-69cc1399a12c
+## Overview
 
-## How can I edit this code?
+This frontend provides a real-time dashboard for:
+- Monitoring system health and security status
+- Managing and resolving anomaly alerts
+- Uploading and analyzing log data
+- Running detection algorithms
+- Viewing analytics by department and threat type
 
-There are several ways of editing your application.
+Built with:
+- React 18 + Vite
+- TypeScript
+- Tailwind CSS + shadcn/ui
+- React Query for data fetching
+- React Router for navigation
 
-**Use Lovable**
+## Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/389d2cc3-f1a4-4e67-9568-69cc1399a12c) and start prompting.
+- Node.js 18+ (recommended: use [nvm](https://github.com/nvm-sh/nvm))
+- npm 9+
+- Access to UEBA backend API (default: http://localhost:8001)
 
-Changes made via Lovable will be committed automatically to this repo.
+## Quick Setup
 
-**Use your preferred IDE**
+1. Install dependencies:
+```bash
+npm install
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. Copy environment template:
+```bash
+cp .env.example .env
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Copy `.env.example` to `.env`:
 
-**Use GitHub Codespaces**
+```ini
+# Backend API URL (required)
+VITE_API_URL=http://localhost:8001/api/v1
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Development auth token (optional)
+VITE_DEV_TOKEN=your_dev_token
+```
 
-## What technologies are used for this project?
+## Available Commands
 
-This project is built with:
+```bash
+# Development
+npm run dev          # Start dev server with hot reload
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Production
+npm run build        # Build for production
+npm run build:dev    # Build for development
+npm run preview      # Preview production build
 
-## How can I deploy this project?
+# Code Quality
+npm run lint         # Run ESLint
+```
 
-Simply open [Lovable](https://lovable.dev/projects/389d2cc3-f1a4-4e67-9568-69cc1399a12c) and click on Share -> Publish.
+## API Integration
 
-## Can I connect a custom domain to my Lovable project?
+The frontend connects to the UEBA backend API:
 
-Yes, you can!
+- Base URL: Configured via `VITE_API_URL` (default: http://localhost:8001/api/v1)
+- Authentication: JWT Bearer token (stored in localStorage)
+- OpenAPI spec: Available at http://localhost:8001/openapi.json
+- Development: Use `SystemAPI.devToken()` to get a dev token
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### API Client Structure
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```typescript
+// src/lib/api.ts
+const API = import.meta.env.VITE_API_URL;
+
+// Example API namespace
+export const SystemAPI = {
+  health: () => apiFetch("/system/health"),
+  devToken: (uid, role) => apiFetch(`/system/dev-token?uid=${uid}&role=${role}`)
+};
+```
+
+## Core Routes
+
+- `/` - Dashboard with system health and quick stats
+- `/anomalies` - List and manage security alerts
+- `/anomalies/:id` - Detailed view of an anomaly with evidence
+- `/upload-logs` - CSV log file upload interface
+- `/detection` - Run detection algorithms
+- `/analytics` - Department and threat analytics
+- `/status` - System health monitoring
+
+## بدء سريع (عربي)
+
+<div dir="rtl">
+
+• تثبيت Node.js (18+) و npm
+• استنسخ المشروع: `git clone <رابط>`
+• ثبّت المكتبات: `npm install`
+• انسخ ملف البيئة: `cp .env.example .env`
+• عدّل `VITE_API_URL` للإشارة إلى الباكند
+• شغّل السيرفر: `npm run dev`
+• افتح http://localhost:5173 في المتصفح
+
+</div>
+
+## Troubleshooting
+
+### CORS Issues
+1. Verify backend CORS settings allow your frontend origin
+2. Check `VITE_API_URL` matches backend exactly
+3. For local development, ensure using correct port (default: 5173)
+
+### Authentication
+1. JWT token stored in localStorage as 'uebatoken'
+2. For development, use `/system/dev-token` endpoint
+3. Check network tab for 401/403 errors
+
+### API Connection
+1. Confirm backend is running (`curl http://localhost:8001/api/v1/health`)
+2. Verify `VITE_API_URL` includes `/api/v1`
+3. Check for SSL/certificate issues if using HTTPS
+
+## Component Library
+
+Reusable components available in `src/components/ui/`:
+- `Button` - Actions and submits
+- `Card` - Content containers
+- `Table` - Data display
+- `Toast` - Notifications
+- `Dialog` - Confirmations
+- `Badge` - Status indicators
+- `FileDropzone` - File uploads
+
+Example usage:
+```tsx
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+export default function AlertCard({ alert }) {
+  return (
+    <Card>
+      <Button onClick={() => resolve(alert.id)}>
+        Resolve Alert
+      </Button>
+    </Card>
+  );
+}
+```
+
+## Contributing
+
+1. Ensure ESLint passes: `npm run lint`
+2. Follow existing patterns for API calls and components
+3. Use React Query for data fetching
+4. Keep styles in Tailwind where possible
+5. Add types for all props and API responses
+
+## Acknowledgments
+
+We gratefully acknowledge the use of Lovable for threat analysis and clarity.
+
+## License
+
+MIT
